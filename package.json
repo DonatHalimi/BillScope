@@ -1,0 +1,30 @@
+{
+  "name": "billscope",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "start": "concurrently -k -n API,WEB -c green,cyan \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm run dev --workspace @billscope/backend",
+    "dev:frontend": "npm run dev --workspace @billscope/frontend",
+    "build": "npm run build --workspace @billscope/frontend",
+    "test": "npm run test --workspace @billscope/backend && npm run test --workspace @billscope/frontend",
+    "test:e2e": "npm run test:e2e --workspace @billscope/frontend",
+    "db:generate": "npm run db:generate --workspace @billscope/backend",
+    "db:migrate": "npm run db:migrate --workspace @billscope/backend",
+    "db:seed": "npm run db:seed --workspace @billscope/backend",
+    "db:studio": "npm run db:studio --workspace @billscope/backend",
+    "db:deploy": "npm run db:deploy --workspace @billscope/backend"
+  },
+  "devDependencies": {
+    "concurrently": "9.2.1"
+  }
+}
