@@ -10,7 +10,8 @@ export async function profileRoutes(app) {
           firstName: { type: 'string', minLength: 1, maxLength: 60 },
           lastName: { type: 'string', minLength: 1, maxLength: 60 },
           phone: { type: 'string', minLength: 7, maxLength: 24, pattern: '^\\+?[0-9][0-9() .-]{5,22}$' },
-          preferredCurrency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF'] }
+          preferredCurrency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD', 'SEK', 'NOK', 'DKK', 'PLN'] },
+          allowAiInsights: { type: 'boolean' }
         }
       }
     }
@@ -26,7 +27,7 @@ export async function profileRoutes(app) {
     if (!user.isActive) throw new AppError(401, 'Account is unavailable.', 'ACCOUNT_UNAVAILABLE');
     return { user: {
       id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email,
-      phone: user.phone, role: user.role, preferredCurrency: user.preferredCurrency, createdAt: user.createdAt
+      phone: user.phone, role: user.role, preferredCurrency: user.preferredCurrency, allowAiInsights: user.allowAiInsights, createdAt: user.createdAt
     } };
   });
 }

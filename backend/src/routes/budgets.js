@@ -1,5 +1,5 @@
 import { AppError } from '../lib/http-errors.js';
-import { asNumber } from '../lib/money.js';
+import { asNumber, SUPPORTED_CURRENCIES } from '../lib/money.js';
 
 function startOfPeriod(now, period) {
   const start = new Date(now);
@@ -43,7 +43,7 @@ export async function budgetRoutes(app) {
           name: { type: 'string', minLength: 1, maxLength: 80 },
           category: { type: 'string', minLength: 1, maxLength: 60 },
           amount: { type: 'number', exclusiveMinimum: 0, maximum: 100000000 },
-          currency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF'] },
+          currency: { type: 'string', enum: SUPPORTED_CURRENCIES },
           period: { type: 'string', enum: ['WEEKLY', 'MONTHLY'] },
           enabled: { type: 'boolean' }
         }

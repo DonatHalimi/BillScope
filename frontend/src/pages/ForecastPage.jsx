@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownRight, ArrowUpRight, CalendarClock, ChartNoAxesCombined, Plus, TrendingDown, Wallet } from 'lucide-react';
 import { api } from '../api/client.js';
+import { CurrencySelect } from '../components/CurrencySelect.jsx';
 import { useForecast, useScheduledIncome, queryKeys } from '../hooks/useFinanceQueries.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.jsx';
 import { Button } from '../components/ui/button.jsx';
@@ -72,7 +73,7 @@ export function ForecastPage() {
       <Card><CardHeader className="flex-row items-center justify-between gap-3"><div><CardTitle>Expected income</CardTitle><CardDescription className="mt-1">Salary and other planned incoming payments.</CardDescription></div><Badge variant="outline">{incomes.filter((income) => income.active).length} active</Badge></CardHeader><CardContent>
         {showForm && <form onSubmit={submit} className="mb-5 space-y-3 rounded-xl border border-border p-4">
           <div><label className="field-label" htmlFor="description">Income source</label><Input id="description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required maxLength={100} placeholder="Monthly salary" /></div>
-          <div className="grid grid-cols-2 gap-3"><div><label className="field-label" htmlFor="amount">Amount</label><Input id="amount" type="number" step="0.01" min="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} required placeholder="1250.00" /></div><div><label className="field-label" htmlFor="currency">Currency</label><Select id="currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })}>{['EUR', 'USD', 'GBP', 'JPY', 'CHF'].map((currency) => <option key={currency}>{currency}</option>)}</Select></div></div>
+          <div className="grid grid-cols-2 gap-3"><div><label className="field-label" htmlFor="amount">Amount</label><Input id="amount" type="number" step="0.01" min="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} required placeholder="1250.00" /></div><div><label className="field-label" htmlFor="currency">Currency</label><CurrencySelect id="currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} /></div></div>
           <div className="grid grid-cols-2 gap-3"><div><label className="field-label" htmlFor="expectedAt">Next payment date</label><Input id="expectedAt" type="date" min={new Date().toISOString().slice(0, 10)} value={form.expectedAt} onChange={(event) => setForm({ ...form, expectedAt: event.target.value })} required /></div><div><label className="field-label" htmlFor="period">Frequency</label><Select id="period" value={form.period} onChange={(event) => setForm({ ...form, period: event.target.value })}><option value="ONCE">One-time</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option></Select></div></div>
           <Button type="submit" className="w-full" disabled={incomeMutation.isPending}>{incomeMutation.isPending ? 'Saving…' : 'Add to forecast'}</Button>
         </form>}

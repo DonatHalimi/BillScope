@@ -1,7 +1,7 @@
 import { AppError } from '../lib/http-errors.js';
 import { getProviderAdapter } from '../providers/registry.js';
 import { recordTransaction } from '../services/transactions.js';
-import { asNumber } from '../lib/money.js';
+import { asNumber, SUPPORTED_CURRENCIES } from '../lib/money.js';
 
 const connectSchema = {
   body: {
@@ -9,7 +9,7 @@ const connectSchema = {
     required: ['institutionId', 'currency'],
     properties: {
       institutionId: { type: 'string', minLength: 1 },
-      currency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF'] },
+      currency: { type: 'string', enum: SUPPORTED_CURRENCIES },
       accountName: { type: 'string', minLength: 1, maxLength: 80 }
     }
   }

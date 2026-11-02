@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../lib/http-errors.js';
-import { asNumber } from '../lib/money.js';
+import { asNumber, SUPPORTED_CURRENCIES } from '../lib/money.js';
 
 const createSchema = {
   body: {
@@ -9,10 +9,10 @@ const createSchema = {
     properties: {
       title: { type: 'string', minLength: 1, maxLength: 100 },
       amount: { type: 'number', exclusiveMinimum: 0, maximum: 100000000 },
-      currency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF'] },
+      currency: { type: 'string', enum: SUPPORTED_CURRENCIES },
       category: { type: 'string', maxLength: 60 },
       dueDate: { type: 'string', format: 'date-time' },
-      recurringPeriod: { type: 'string', enum: ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'] },
+      recurringPeriod: { type: 'string', enum: ['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'] },
       autoPay: { type: 'boolean' },
       accountId: { type: 'string' }
     }
@@ -113,8 +113,8 @@ export async function billRoutes(app) {
 
 function addOccurrence(value, period, occurrence = 1) {
   const date = new Date(value);
-  if (period === 'WEEKLY') {
-    date.setDate(date.getDate() + (7 * occurrence));
+  if (period === 'WEEKLY' || period === 'BIWEEKLY') {
+    date.setDate(date.getDate() + ((period === 'BIWEEKLY' ? 14 : 7) * occurrence));
     return date;
   }
   const originalDay = date.getDate();

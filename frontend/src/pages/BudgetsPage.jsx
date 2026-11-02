@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, CheckCircle2, CircleDollarSign, Plus, Target, TrendingUp } from 'lucide-react';
 import { api } from '../api/client.js';
+import { CurrencySelect } from '../components/CurrencySelect.jsx';
 import { useBudgets, useCreateBudget, queryKeys } from '../hooks/useFinanceQueries.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.jsx';
 import { Button } from '../components/ui/button.jsx';
@@ -51,7 +52,7 @@ export function BudgetsPage() {
       <div><label className="field-label" htmlFor="name">Name</label><Input id="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required maxLength={80} /></div>
       <div><label className="field-label" htmlFor="category">Category</label><Select id="category" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value, name: event.target.value })}>{categoryOptions.map((item) => <option key={item} value={item}>{item}</option>)}</Select></div>
       <div><label className="field-label" htmlFor="amount">Limit amount</label><Input id="amount" type="number" min="0.01" max="100000000" step="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} required placeholder="150.00" /></div>
-      <div><label className="field-label" htmlFor="currency">Currency</label><Select id="currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })}>{['EUR', 'USD', 'GBP', 'JPY', 'CHF'].map((item) => <option key={item}>{item}</option>)}</Select></div>
+      <div><label className="field-label" htmlFor="currency">Currency</label><CurrencySelect id="currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} /></div>
       <div><label className="field-label" htmlFor="period">Period</label><Select id="period" value={form.period} onChange={(event) => setForm({ ...form, period: event.target.value })}><option value="MONTHLY">Monthly</option><option value="WEEKLY">Weekly</option></Select></div>
       <div className="md:col-span-2 xl:col-span-5"><Button type="submit" disabled={createBudget.isPending}>{createBudget.isPending ? 'Saving…' : 'Save spending limit'}</Button></div>
     </form></CardContent></Card>}

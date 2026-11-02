@@ -23,6 +23,7 @@
     "@fastify/helmet": "13.0.2",
     "@fastify/jwt": "9.1.0",
     "@fastify/rate-limit": "10.3.0",
+    "@fastify/websocket": "^11.3.4",
     "@prisma/client": "6.19.0",
     "argon2": "0.44.0",
     "dotenv": "16.6.1",

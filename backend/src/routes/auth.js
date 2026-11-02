@@ -42,6 +42,7 @@ function publicUser(user) {
     phone: user.phone,
     role: user.role,
     preferredCurrency: user.preferredCurrency,
+    allowAiInsights: user.allowAiInsights,
     createdAt: user.createdAt
   };
 }

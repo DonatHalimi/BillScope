@@ -13,6 +13,11 @@ import { ForecastPage } from './pages/ForecastPage.jsx';
 import { SettingsPage } from './pages/SettingsPage.jsx';
 import { AdminPage } from './pages/AdminPage.jsx';
 import { ProviderPage } from './pages/ProviderPage.jsx';
+import { CurrencyPage } from './pages/CurrencyPage.jsx';
+import { RecurringPage } from './pages/RecurringPage.jsx';
+import { FinancialHealthPage } from './pages/FinancialHealthPage.jsx';
+import { HouseholdsPage } from './pages/HouseholdsPage.jsx';
+import { AdminAuditPage } from './pages/AdminAuditPage.jsx';
 
 export function App() {
   return <Routes>
@@ -30,9 +35,14 @@ export function App() {
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="budgets" element={<BudgetsPage />} />
         <Route path="forecast" element={<ForecastPage />} />
+        <Route path="currency" element={<CurrencyPage />} />
+        <Route path="recurring" element={<RecurringPage />} />
+        <Route path="financial-health" element={<FinancialHealthPage />} />
+        <Route path="households" element={<HouseholdsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route element={<RoleGuard roles={['ADMIN']} />}>
           <Route path="admin" element={<AdminPage />} />
+          <Route path="admin/audit" element={<AdminAuditPage />} />
         </Route>
         <Route element={<RoleGuard roles={['PROVIDER', 'ADMIN']} />}>
           <Route path="provider" element={<ProviderPage />} />

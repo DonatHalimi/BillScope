@@ -3,7 +3,7 @@ export function formatCurrency(amount, currency = 'EUR', locale = 'en-GB') {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency || 'EUR',
-    maximumFractionDigits: currency === 'JPY' ? 0 : 2
+    maximumFractionDigits: new Intl.NumberFormat(locale, { style: 'currency', currency: currency || 'EUR' }).resolvedOptions().maximumFractionDigits
   }).format(Number.isFinite(value) ? value : 0);
 }
 

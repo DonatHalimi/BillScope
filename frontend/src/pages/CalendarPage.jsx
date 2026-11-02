@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Clock3, Plus, ReceiptText } from 'lucide-react';
 import { api } from '../api/client.js';
+import { CurrencySelect } from '../components/CurrencySelect.jsx';
 import { useBills, useCreateBill, queryKeys } from '../hooks/useFinanceQueries.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.jsx';
@@ -82,7 +83,7 @@ export function CalendarPage() {
       <div><label className="field-label" htmlFor="amount">Amount</label><Input id="amount" name="amount" type="number" min="0.01" max="100000000" step="0.01" value={form.amount} onChange={update} required placeholder="45.00" /></div>
       <div><label className="field-label" htmlFor="dueDate">Due date</label><Input id="dueDate" name="dueDate" type="date" min={new Date().toISOString().slice(0, 10)} value={form.dueDate} onChange={update} required /></div>
       <div><label className="field-label" htmlFor="category">Category</label><Input id="category" name="category" value={form.category} onChange={update} maxLength={60} /></div>
-      <div><label className="field-label" htmlFor="currency">Currency</label><Select id="currency" name="currency" value={form.currency} onChange={update}>{['EUR', 'USD', 'GBP', 'JPY', 'CHF'].map((item) => <option key={item}>{item}</option>)}</Select></div>
+      <div><label className="field-label" htmlFor="currency">Currency</label><CurrencySelect id="currency" value={form.currency} onChange={update} /></div>
       <div><label className="field-label" htmlFor="recurringPeriod">Repeat</label><Select id="recurringPeriod" name="recurringPeriod" value={form.recurringPeriod} onChange={update}><option value="">Does not repeat</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option><option value="YEARLY">Yearly</option></Select></div>
       <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" name="autoPay" checked={form.autoPay} onChange={update} className="size-4 rounded accent-primary" />Autopay planned</label>
       <div className="sm:col-span-2 xl:col-span-3"><Button type="submit" disabled={createBill.isPending}>{createBill.isPending ? 'Adding bill…' : 'Add to calendar'}</Button></div>

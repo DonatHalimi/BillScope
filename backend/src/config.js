@@ -15,6 +15,7 @@ export function getConfig(overrides = {}) {
     databaseUrl: process.env.DATABASE_URL || '',
     jwtSecret: process.env.JWT_SECRET || '',
     cookieSecret: process.env.COOKIE_SECRET || '',
+    auditLogSecret: process.env.AUDIT_LOG_SECRET || '',
     accessTokenTtlSeconds: Number.parseInt(process.env.ACCESS_TOKEN_TTL_SECONDS || '600', 10),
     refreshTokenTtlSeconds: Number.parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS || '604800', 10),
     rememberRefreshTokenTtlSeconds: Number.parseInt(process.env.REMEMBER_REFRESH_TOKEN_TTL_SECONDS || '2592000', 10),
@@ -43,6 +44,12 @@ export function getConfig(overrides = {}) {
     }
     if (Buffer.byteLength(config.cookieSecret) < 32 || /replace-with|change-me|example/i.test(config.cookieSecret)) {
       throw new Error('COOKIE_SECRET must be replaced with at least 32 bytes of different random data.');
+    }
+    if (Buffer.byteLength(config.auditLogSecret) < 32 || /replace-with|change-me|example/i.test(config.auditLogSecret)) {
+      throw new Error('AUDIT_LOG_SECRET must be replaced with at least 32 bytes of unique random data.');
+    }
+    if ([config.jwtSecret, config.cookieSecret].includes(config.auditLogSecret)) {
+      throw new Error('AUDIT_LOG_SECRET must differ from JWT_SECRET and COOKIE_SECRET.');
     }
   }
   return config;

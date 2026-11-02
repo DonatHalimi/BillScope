@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Activity, ArrowLeftRight, Banknote, CalendarDays, ChartNoAxesCombined,
   ChevronRight, CircleHelp, CreditCard, LayoutDashboard, LogOut, Menu,
-  Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Wallet, X, Landmark
+  Settings2, ShieldCheck, SlidersHorizontal, Sparkles, Wallet, X, Landmark,
+  Globe2, Repeat2, HeartPulse, UsersRound, ScrollText
 } from 'lucide-react';
 import { AppLogo } from '../components/AppLogo.jsx';
 import { Button } from '../components/ui/button.jsx';
@@ -18,7 +19,11 @@ const navItems = [
   { to: '/app/transfers', label: 'Transfers', icon: ArrowLeftRight },
   { to: '/app/calendar', label: 'Bill calendar', icon: CalendarDays },
   { to: '/app/budgets', label: 'Spending limits', icon: SlidersHorizontal },
-  { to: '/app/forecast', label: 'Forecast', icon: ChartNoAxesCombined }
+  { to: '/app/forecast', label: 'Forecast', icon: ChartNoAxesCombined },
+  { to: '/app/currency', label: 'Currency & FX', icon: Globe2 },
+  { to: '/app/recurring', label: 'Subscriptions & bills', icon: Repeat2 },
+  { to: '/app/financial-health', label: 'Financial health', icon: HeartPulse },
+  { to: '/app/households', label: 'Household budgets', icon: UsersRound }
 ];
 
 function SideNavigation({ closeMenu }) {
@@ -36,7 +41,7 @@ function SideNavigation({ closeMenu }) {
       <nav aria-label="Account navigation" className="space-y-1">
         <NavLink to="/app/settings" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'}`}><Settings2 size={18} />Settings</NavLink>
         {user?.role === 'PROVIDER' && <NavLink to="/app/provider" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'}`}><Landmark size={18} />Provider portal</NavLink>}
-        {user?.role === 'ADMIN' && <NavLink to="/app/admin" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'}`}><ShieldCheck size={18} />Admin portal</NavLink>}
+        {user?.role === 'ADMIN' && <><NavLink to="/app/admin" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'}`}><ShieldCheck size={18} />Admin portal</NavLink><NavLink to="/app/admin/audit" onClick={closeMenu} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'}`}><ScrollText size={18} />Audit log</NavLink></>}
       </nav>
     </div>
     <div className="mt-auto px-5 pb-5 pt-8">

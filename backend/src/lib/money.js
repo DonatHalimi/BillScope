@@ -1,4 +1,4 @@
-export const SUPPORTED_CURRENCIES = Object.freeze(['EUR', 'USD', 'GBP', 'JPY', 'CHF']);
+export const SUPPORTED_CURRENCIES = Object.freeze(['EUR', 'USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD', 'SEK', 'NOK', 'DKK', 'PLN']);
 
 export function toCents(value) {
   const amount = Number(value);

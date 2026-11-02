@@ -20,6 +20,13 @@ enum Currency {
   GBP
   JPY
   CHF
+  CAD
+  AUD
+  NZD
+  SEK
+  NOK
+  DKK
+  PLN
 }
 
 enum AccountType {
@@ -48,6 +55,7 @@ enum BillStatus {
 
 enum BillPeriod {
   WEEKLY
+  BIWEEKLY
   MONTHLY
   QUARTERLY
   YEARLY
@@ -71,6 +79,38 @@ enum IncomePeriod {
   YEARLY
 }
 
+enum FxProvider {
+  FRANKFURTER
+  OPEN_ER_API
+}
+
+enum SubscriptionCadence {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum SubscriptionReviewStatus {
+  DETECTED
+  CONFIRMED
+  DISMISSED
+}
+
+enum HouseholdRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SplitMode {
+  EQUAL
+  PERCENTAGE
+  CUSTOM
+}
+
 model User {
   id                String            @id @default(cuid())
   firstName         String
@@ -80,6 +120,7 @@ model User {
   passwordHash      String
   role              Role              @default(CLIENT)
   preferredCurrency Currency          @default(EUR)
+  allowAiInsights   Boolean           @default(false)
   isActive          Boolean           @default(true)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -91,6 +132,17 @@ model User {
   spendingLimits    SpendingLimit[]
   scheduledIncomes  ScheduledIncome[]
   savingsGoals      SavingsGoal[]
+  fxConversions     FxConversion[]
+  subscriptionCandidates SubscriptionCandidate[]
+  classificationFeedback TransactionClassificationFeedback[]
+  healthSnapshots   FinancialHealthSnapshot[]
+  spendingInsights  SpendingInsight[]
+  ownedHouseholds   Household[] @relation("HouseholdOwner")
+  householdMemberships HouseholdMember[]
+  createdHouseholdBudgets HouseholdBudget[] @relation("HouseholdBudgetCreator")
+  createdHouseholdExpenses HouseholdExpense[] @relation("HouseholdExpenseCreator")
+  adminAuditLogs    AdminAuditLog[] @relation("AdminAuditActor")
+  householdSocketTickets HouseholdSocketTicket[]
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -174,11 +226,13 @@ model Transaction {
   user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   account             Account           @relation("SourceAccount", fields: [accountId], references: [id], onDelete: Restrict)
   destinationAccount  Account?          @relation("DestinationAccount", fields: [destinationAccountId], references: [id], onDelete: SetNull)
+  classificationFeedback TransactionClassificationFeedback?
 
   @@index([userId, occurredAt(sort: Desc)])
   @@index([userId, category, occurredAt])
   @@index([accountId, occurredAt])
   @@index([userId, type, status, occurredAt])
+  @@unique([userId, id])
 }
 
 model Bill {
@@ -200,6 +254,7 @@ model Bill {
   account          Account?    @relation(fields: [accountId], references: [id], onDelete: SetNull)
 
   @@index([userId, dueDate, status])
+  @@unique([recurrenceGroupId, dueDate])
   @@index([recurrenceGroupId, dueDate])
 }
 
@@ -249,4 +304,241 @@ model SavingsGoal {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, targetDate])
+}
+
+
+model FxRate {
+  id            String     @id @default(cuid())
+  baseCurrency  Currency
+  quoteCurrency Currency
+  rate          Decimal    @db.Decimal(24, 12)
+  source        FxProvider
+  asOf          DateTime
+  fetchedAt     DateTime   @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime   @default(now())
+
+  @@unique([baseCurrency, quoteCurrency, source, asOf])
+  @@index([baseCurrency, quoteCurrency, fetchedAt(sort: Desc)])
+  @@index([expiresAt])
+}
+
+model FxConversion {
+  id             String   @id @default(cuid())
+  userId         String
+  idempotencyKey String
+  requestHash    String
+  amount         Decimal  @db.Decimal(24, 8)
+  fromCurrency   Currency
+  toCurrency     Currency
+  rate           Decimal  @db.Decimal(24, 12)
+  convertedAmount Decimal @db.Decimal(24, 8)
+  rateSource     FxProvider?
+  rateAsOf       DateTime?
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model SubscriptionCandidate {
+  id                    String                   @id @default(cuid())
+  userId                String
+  merchantKey           String
+  displayName           String
+  averageAmount         Decimal                  @db.Decimal(14, 2)
+  transactionCount      Int                      @default(0)
+  currency              Currency
+  cadence               SubscriptionCadence
+  confidence            Decimal                  @db.Decimal(5, 4)
+  nextExpectedAt        DateTime?
+  firstSeenAt           DateTime
+  lastSeenAt            DateTime
+  sampleTransactionIds  Json                     @default("[]")
+  category              String                   @default("Subscriptions")
+  status                SubscriptionReviewStatus @default(DETECTED)
+  userCorrected         Boolean                  @default(false)
+  reviewedAt            DateTime?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  user                  User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, merchantKey, currency, cadence])
+  @@index([userId, status, nextExpectedAt])
+  @@index([userId, lastSeenAt(sort: Desc)])
+}
+
+model TransactionClassificationFeedback {
+  id                String      @id @default(cuid())
+  userId            String
+  transactionId     String
+  predictedCategory String
+  correctedCategory String
+  normalizedMerchantKey String
+  acceptedPrediction Boolean    @default(false)
+  details           Json        @default("{}")
+  createdAt         DateTime    @default(now())
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction       Transaction @relation(fields: [userId, transactionId], references: [userId, id], onDelete: Cascade)
+
+  @@unique([userId, transactionId])
+  @@index([userId, correctedCategory, createdAt(sort: Desc)])
+  @@index([userId, normalizedMerchantKey, createdAt(sort: Desc)])
+}
+
+model FinancialHealthSnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  score        Int
+  incomeStabilityScore Int
+  savingsRateScore Int
+  debtToIncomeScore Int
+  budgetAdherenceScore Int
+  metrics      Json
+  snapshotDate DateTime @db.Date
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, snapshotDate])
+  @@index([userId, snapshotDate(sort: Desc)])
+}
+
+model SpendingInsight {
+  id          String   @id @default(cuid())
+  userId      String
+  kind        String
+  title       String
+  body        String
+  confidence  Decimal  @default(0.75) @db.Decimal(5, 4)
+  periodStart DateTime @db.Date
+  periodEnd   DateTime @db.Date
+  generatedBy String   @default("rules")
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodStart, periodEnd, kind])
+  @@index([userId, periodEnd(sort: Desc)])
+}
+
+model Household {
+  id        String           @id @default(cuid())
+  ownerId   String
+  name      String
+  currency  Currency         @default(EUR)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  owner     User             @relation("HouseholdOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members   HouseholdMember[]
+  budgets   HouseholdBudget[]
+  expenses  HouseholdExpense[]
+  socketTickets HouseholdSocketTicket[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+}
+
+model HouseholdMember {
+  id          String        @id @default(cuid())
+  householdId String
+  userId      String
+  role        HouseholdRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splits      HouseholdExpenseSplit[] @relation("HouseholdExpenseMember")
+
+  @@unique([householdId, userId])
+  @@unique([id, householdId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([householdId, role])
+}
+
+model HouseholdBudget {
+  id          String       @id @default(cuid())
+  householdId String
+  createdById String
+  name        String
+  category    String?
+  amount      Decimal      @db.Decimal(14, 2)
+  currency    Currency
+  period      BudgetPeriod @default(MONTHLY)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  household   Household    @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation("HouseholdBudgetCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  expenses    HouseholdExpense[]
+
+  @@unique([id, householdId])
+  @@index([householdId, period, createdAt(sort: Desc)])
+}
+
+model HouseholdExpense {
+  id          String       @id @default(cuid())
+  householdId String
+  budgetId    String?
+  createdById String
+  description String
+  amount      Decimal      @db.Decimal(14, 2)
+  currency    Currency
+  splitMode   SplitMode
+  occurredAt  DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  household   Household    @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  budget      HouseholdBudget? @relation(fields: [budgetId, householdId], references: [id, householdId], onDelete: Restrict)
+  createdBy   User         @relation("HouseholdExpenseCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  splits      HouseholdExpenseSplit[]
+
+  @@unique([id, householdId])
+  @@index([householdId, occurredAt(sort: Desc)])
+  @@index([householdId, budgetId, occurredAt])
+}
+
+model HouseholdExpenseSplit {
+  id           String          @id @default(cuid())
+  householdId  String
+  expenseId    String
+  memberUserId String
+  amount       Decimal         @db.Decimal(14, 2)
+  sharePercent Decimal?        @db.Decimal(7, 4)
+  createdAt    DateTime        @default(now())
+  householdMember HouseholdMember @relation("HouseholdExpenseMember", fields: [householdId, memberUserId], references: [householdId, userId], onDelete: Cascade)
+  expense      HouseholdExpense @relation(fields: [expenseId, householdId], references: [id, householdId], onDelete: Cascade)
+
+  @@unique([expenseId, memberUserId])
+  @@index([householdId, memberUserId])
+}
+
+model HouseholdSocketTicket {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  householdId String
+  userId      String
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([householdId, userId, expiresAt])
+}
+
+model AdminAuditLog {
+  id             String   @id @default(cuid())
+  actorUserId    String
+  action         String
+  targetType     String
+  targetId       String
+  metadata       Json     @default("{}")
+  ipHash         String?
+  userAgentHash  String?
+  previousHash   String   @unique @default("GENESIS")
+  currentHash    String   @unique
+  createdAt      DateTime @default(now())
+  actor          User     @relation("AdminAuditActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([actorUserId, createdAt(sort: Desc)])
+  @@index([targetType, targetId, createdAt(sort: Desc)])
 }

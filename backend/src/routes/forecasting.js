@@ -1,6 +1,6 @@
 import { AppError } from '../lib/http-errors.js';
 import { calculateForecast } from '../services/forecasting.js';
-import { asNumber } from '../lib/money.js';
+import { asNumber, SUPPORTED_CURRENCIES } from '../lib/money.js';
 
 export async function forecastingRoutes(app) {
   app.get('/summary', { preHandler: [app.authenticate] }, async (request) => ({
@@ -21,7 +21,7 @@ export async function forecastingRoutes(app) {
         properties: {
           description: { type: 'string', minLength: 1, maxLength: 100 },
           amount: { type: 'number', exclusiveMinimum: 0, maximum: 100000000 },
-          currency: { type: 'string', enum: ['EUR', 'USD', 'GBP', 'JPY', 'CHF'] },
+          currency: { type: 'string', enum: SUPPORTED_CURRENCIES },
           expectedAt: { type: 'string', format: 'date-time' },
           period: { type: 'string', enum: ['ONCE', 'WEEKLY', 'MONTHLY', 'YEARLY'] }
         }
